@@ -1,0 +1,10 @@
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'postcss-pxtorem': {
+      rootValue: 37.5,
+      //   rootValue: (module) => (/vant/gi.test(module.file) ? 37.5 : 75),
+      propList: ['*']
+    }
+  }
+}
