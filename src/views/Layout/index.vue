@@ -17,7 +17,7 @@
    <span class="iconfont icon-wenda"></span>
    </template>
   </van-tabbar-item>
-    <van-tabbar-item  to='/profile'>我的
+    <van-tabbar-item  to='/profile'>{{!!this.$store.state.user.token ? '我的': '未登录'}}
    <template #icon>
    <span class="iconfont icon-wode"></span>
    </template>

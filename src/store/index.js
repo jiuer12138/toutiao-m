@@ -6,13 +6,13 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    user: setToken() || {}
+    user: getToken() || {}
   },
   getters: {},
   mutations: {
     setUser (state, payload) {
       state.user = payload
-      getToken(payload)
+      setToken(payload)
     }
   },
   actions: {},
