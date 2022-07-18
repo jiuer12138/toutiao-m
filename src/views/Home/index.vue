@@ -11,43 +11,50 @@
     </van-nav-bar>
     <!-- 标签页 -->
     <van-tabs v-model="active" swipeable>
-      <van-tab :title="item.name" v-for="item in MyChanners" :key='item.id'>
-      <ArticleList :id='item.id'></ArticleList>
+      <van-tab v-for="item in channels" :key="item.id" :title="item.name">
+        <ArticleList :id="item.id"></ArticleList>
       </van-tab>
-      <span class="iconfont icon-gengduo"></span>
+
+      <span class="iconfont icon-gengduo" @click="$refs.popup.isShow=true"></span>
     </van-tabs>
+<EditChannelsPopup ref='popup' :myChannels='channels'></EditChannelsPopup>
   </div>
 </template>
 <script>
+import EditChannelsPopup from './components/EditChannelsPopup.vue'
 import { getMyChannels } from '@/api/channels'
 import ArticleList from '@/components/ArticleList.vue'
 export default {
   name: 'Home',
   data () {
     return {
-      active: 2,
-      MyChanners: []
+      active: 0,
+      channels: [],
+      isShow: false
     }
+  },
+  components: {
+    ArticleList,
+    EditChannelsPopup
   },
   created () {
     this.getMyChannels()
   },
-  components: { ArticleList },
   mounted () {},
   computed: {},
   methods: {
     async getMyChannels () {
       try {
-        const { data: { data } } = await getMyChannels()
-        this.MyChanners = data.channels
-        console.log(this.MyChanners)
+        const { data } = await getMyChannels()
+        this.channels = data.data.channels
       } catch (error) {
-        console.log(error)
+        this.$toast.fail('获取频道列表失败，请重试')
       }
     }
   }
 }
 </script>
+
 <style scoped lang="less">
 //头部搜索
 .navbar {
@@ -102,6 +109,7 @@ export default {
   position: absolute;
   top: 0;
   right: 0;
+  z-index: 99;
   width: 33px;
   height: 41px;
   font-size: 20px;
@@ -120,5 +128,27 @@ export default {
     width: 1px;
     background-image: url('~@/assets/image/gradient-gray-line.png');
   }
+}
+// 头部固定的样式
+.navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+}
+:deep(.van-tabs__wrap) {
+  position: sticky;
+  top: 46px;
+  left: 0;
+  z-index: 99;
+}
+.icon-gengduo {
+  z-index: 999;
+  position: fixed;
+  top: 46px;
+}
+
+:deep(.van-tabs__content) {
+  max-height: calc(100vh - 46px - 41px - 50px);
+  overflow: auto;
 }
 </style>
