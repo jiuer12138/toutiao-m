@@ -1,6 +1,9 @@
 class Storage {
   set (key, value) {
-    if (Object.prototype.toString.call(value) === '[object Object]') {
+    if (
+      Object.prototype.toString.call(value) === '[object Object]' ||
+      Object.prototype.toString.call(value) === '[object Array]'
+    ) {
       value = JSON.stringify(value)
     }
     localStorage.setItem(key, value)

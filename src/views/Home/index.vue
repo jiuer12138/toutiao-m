@@ -15,14 +15,29 @@
         <ArticleList :id="item.id"></ArticleList>
       </van-tab>
 
-      <span class="iconfont icon-gengduo" @click="$refs.popup.isShow=true"></span>
+      <span
+        class="iconfont icon-gengduo"
+        @click="$refs.popup.isShow = true"
+      ></span>
     </van-tabs>
-<EditChannelsPopup ref='popup' :myChannels='channels'></EditChannelsPopup>
+    <EditChannelsPopup
+      ref="popup"
+      :myChannels="channels"
+      @delMyChannels="delMyChannels"
+      @changeChannels="changeChannels"
+      @addChannel="addChannel"
+    ></EditChannelsPopup>
   </div>
 </template>
 <script>
 import EditChannelsPopup from './components/EditChannelsPopup.vue'
-import { getMyChannels } from '@/api/channels'
+import {
+  getMyChannels,
+  getMyChannelsList,
+  setMyChannelsList,
+  DelChannels,
+  addChannels
+} from '@/api/channels'
 import ArticleList from '@/components/ArticleList.vue'
 export default {
   name: 'Home',
@@ -41,15 +56,61 @@ export default {
     this.getMyChannels()
   },
   mounted () {},
-  computed: {},
+  computed: {
+    isLogin () {
+      return !!this.$store.state.user.token
+    }
+  },
   methods: {
     async getMyChannels () {
-      try {
-        const { data } = await getMyChannels()
-        this.channels = data.data.channels
-      } catch (error) {
-        this.$toast.fail('获取频道列表失败，请重试')
+      if (!this.isLogin) {
+        if (getMyChannelsList()) {
+          this.channels = getMyChannelsList()
+        } else {
+          try {
+            const { data } = await getMyChannels()
+            this.channels = data.data.channels
+          } catch (error) {
+            this.$toast.fail('获取频道列表失败，请重试')
+          }
+        }
+      } else {
+        try {
+          const { data } = await getMyChannels()
+          this.channels = data.data.channels
+        } catch (error) {
+          this.$toast.fail('获取频道列表失败，请重试')
+        }
       }
+    },
+    async delMyChannels (id) {
+      this.channels = this.channels.filter((item) => item.id !== id)
+      if (!this.isLogin) {
+        setMyChannelsList(this.channels)
+      } else {
+        try {
+          await DelChannels(id)
+        } catch (error) {
+          return this.$toast.fail('删除失败')
+        }
+      }
+      this.$toast.success('删除成功')
+    },
+    changeChannels (index) {
+      this.active = index
+    },
+    async addChannel (channel) {
+      this.channels.push(channel)
+      if (!this.isLogin) {
+        setMyChannelsList(this.channels)
+      } else {
+        try {
+          await addChannels(channel.id, this.channels.length)
+        } catch (error) {
+          return this.$toast.fail('添加失败')
+        }
+      }
+      this.$toast.success('添加成功')
     }
   }
 }
