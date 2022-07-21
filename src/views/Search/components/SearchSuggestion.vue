@@ -5,6 +5,7 @@
       center
       v-for="(item, index) in highlight"
       :key="index"
+      @click="changekeyword(index)"
     >
       <template #title>
         <span v-html="item"></span>
@@ -54,8 +55,12 @@ export default {
       } catch (error) {
         console.log(error)
       }
+    },
+    changekeyword (index) {
+      const keywords = this.suggestions[index]
+      this.$emit('changeKeywords', keywords)
     }
   }
 }
 </script>
-<style scoped></style>
+<style scoped lang="less"></style>

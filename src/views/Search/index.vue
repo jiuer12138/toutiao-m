@@ -12,7 +12,11 @@
         @focus="visibleSearchSuggestion"
       />
     </form>
-    <component :is="componentName" :keywords='keywords'></component>
+    <component
+      :is="componentName"
+      :keywords="keywords"
+      @changeKeywords="changeKeywords"
+    ></component>
     <!-- <SearchHistory></SearchHistory>
     <SearchSuggestion></SearchSuggestion>
     <SearchResult></SearchResult> -->
@@ -22,11 +26,15 @@
 import SearchHistory from './components/SearchHistory.vue'
 import SearchSuggestion from './components/SearchSuggestion.vue'
 import SearchResult from './components/SearchResult.vue'
+
+import { getHistory, setHistory } from './storageHistory'
+
 export default {
   data () {
     return {
       keywords: '',
-      isShowSearchResult: false
+      isShowSearchResult: false,
+      history: []
     }
   },
   components: {
@@ -45,12 +53,21 @@ export default {
   methods: {
     onSearch () {
       this.isShowSearchResult = true
+      console.log(this.keywords)
+      this.history = getHistory() || []
+      this.history.push(this.keywords)
+      this.history = Array.from(new Set(this.history))
+      setHistory(this.history)
     },
     goBack () {
       this.$router.back()
     },
     visibleSearchSuggestion () {
       this.isShowSearchResult = false
+    },
+    changeKeywords (value) {
+      this.keywords = value
+      this.isShowSearchResult = true
     }
   }
 }

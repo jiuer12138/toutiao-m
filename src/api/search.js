@@ -10,3 +10,8 @@ export const getSearchSuggestion = (q) =>
     url: '/v1_0/suggestion',
     params: { q }
   })
+export const getSearchResult = (q, page) =>
+  request({
+    url: '/v1_0/search',
+    params: { q, page, per_page: 15 }
+  })
