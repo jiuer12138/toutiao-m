@@ -1,18 +1,26 @@
 <template>
   <div>
-    <van-pull-refresh v-model="refreshing" @refresh="onLoad" success-text="刷新成功">
-    <van-list
-    v-model='loading'
-    :finished='finished'
-  finished-text="没有更多了"
-  :error.sync="error"
-  error-text="请求失败，点击重新加载"
-  @load="onLoad"
-  :immediate-check='false'
->
- <ArticleItem v-for="item in articleList" :key="item.art_id" :articleInfo='item'></ArticleItem>
-</van-list>
-</van-pull-refresh>
+    <van-pull-refresh
+      v-model="refreshing"
+      @refresh="onLoad"
+      success-text="刷新成功"
+    >
+      <van-list
+        v-model="loading"
+        :finished="finished"
+        finished-text="没有更多了"
+        :error.sync="error"
+        error-text="请求失败，点击重新加载"
+        @load="onLoad"
+        :immediate-check="false"
+      >
+        <ArticleItem
+          v-for="item in articleList"
+          :key="item.art_id"
+          :articleInfo="item"
+        ></ArticleItem>
+      </van-list>
+    </van-pull-refresh>
   </div>
 </template>
 <script>
@@ -42,9 +50,7 @@ export default {
   created () {
     this.getArticleList()
   },
-  computed: {
-
-  },
+  computed: {},
   methods: {
     async getArticleList () {
       try {
@@ -63,9 +69,9 @@ export default {
     },
     async onLoad () {
       try {
-        if (Math.random() < 0.5) {
-          throw new Error('请求失败，点击重新加载')
-        }
+        // if (Math.random() < 0.5) {
+        //   throw new Error('请求失败，点击重新加载')
+        // }
         const res = await getArticleList(this.id, this.pre_timestamp)
         if (!res.data.data.pre_timestamp) {
           this.finished = true
@@ -86,6 +92,4 @@ export default {
   }
 }
 </script>
-<style scoped>
-
-</style>
+<style scoped></style>

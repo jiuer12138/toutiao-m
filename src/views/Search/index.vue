@@ -55,7 +55,7 @@ export default {
       this.isShowSearchResult = true
       console.log(this.keywords)
       this.history = getHistory() || []
-      this.history.push(this.keywords)
+      this.history.unshift(this.keywords)
       this.history = Array.from(new Set(this.history))
       setHistory(this.history)
     },

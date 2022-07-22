@@ -11,6 +11,7 @@
         v-for="(item, index) in resultsList"
         :key="index"
         :title="item.title"
+        @click="goAticleDetail(item)"
       />
     </van-list>
   </van-pull-refresh>
@@ -69,6 +70,11 @@ export default {
     onRefresh () {
       this.page++
       this.getSearchResults()
+    },
+    goAticleDetail (item) {
+      console.log(item)
+      const id = item.art_id
+      this.$router.push(`/detail/${id}`)
     }
   }
 }
