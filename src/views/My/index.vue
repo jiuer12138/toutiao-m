@@ -22,7 +22,7 @@
 
           <van-col span="12">
             <van-row class="code-row">
-              <van-button class="code-btn"> 编辑资料 </van-button>
+              <van-button class="code-btn" @click="$router.push('/user')"> 编辑资料 </van-button>
             </van-row>
           </van-col>
         </van-row>

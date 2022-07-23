@@ -46,3 +46,24 @@ export const ChangeUserfollowState = (id) =>
     url: `/v1_0/user/followings/${id}`,
     method: 'DELETE'
   })
+
+export const getUserInfoDetails = () =>
+  request({
+    url: '/v1_0/user/profile'
+  })
+export const editUserInfoDetails = (name, gender, birthday) =>
+  request({
+    url: '/v1_0/user/profile',
+    method: 'PATCH',
+    data: {
+      name,
+      gender,
+      birthday
+    }
+  })
+export const ChangeUserAvatar = (photo) =>
+  request({
+    url: '/v1_0/user/photo',
+    method: 'PATCH',
+    params: { photo }
+  })

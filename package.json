@@ -15,6 +15,7 @@
     "github-markdown-css": "^5.1.0",
     "vant": "^2.12.48",
     "vue": "^2.6.14",
+    "vue-cropper": "^0.5.8",
     "vue-router": "^3.5.1",
     "vuex": "^3.6.2"
   },
