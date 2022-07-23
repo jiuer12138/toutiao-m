@@ -42,7 +42,6 @@
       v-model="loading"
       :finished="finished"
       finished-text="没有更多了"
-      @load="onLoad"
     >
       <CommentItem
         @giveALike="giveALikeFn"
@@ -73,7 +72,6 @@
         v-model="loading1"
         :finished="finished1"
         finished-text="没有更多了"
-        @load="onLoad1"
       >
         <CommentItem
           @giveALike="giveUpTheLikeFn"
@@ -249,9 +247,9 @@ export default {
       }
       this.loading = false
     },
-    onLoad () {
-      this.getArticleComment()
-    },
+    // onLoad () {
+    //   this.getArticleComment()
+    // },
     async isFollowFn () {
       this.isFollowLoading = true
       const id = this.articleObj.aut_id
@@ -262,6 +260,7 @@ export default {
         } catch (error) {
         } finally {
           this.isFollowLoading = false
+          this.getArticleDetails()
         }
       } else {
         try {
@@ -270,6 +269,7 @@ export default {
         } catch (error) {
         } finally {
           this.isFollowLoading = false
+          this.getArticleDetails()
         }
       }
       // this.getArticleDetails()
@@ -280,12 +280,18 @@ export default {
         try {
           await ChangeArticleCollect(id)
           this.isCollected = false
-        } catch (error) {}
+        } catch (error) {
+        } finally {
+          this.getArticleDetails()
+        }
       } else {
         try {
           await getArticleCollect(id)
           this.isCollected = true
-        } catch (error) {}
+        } catch (error) {
+        } finally {
+          this.getArticleDetails()
+        }
       }
       // this.getArticleDetails()
     },
@@ -295,12 +301,18 @@ export default {
         try {
           await ChangeArticleAttitude(id)
           this.Attitude = -1
-        } catch (error) {}
+        } catch (error) {
+        } finally {
+          this.getArticleDetails()
+        }
       } else if (this.Attitude === -1) {
         try {
           await getArticleAttitude(id)
           this.Attitude = 1
-        } catch (error) {}
+        } catch (error) {
+        } finally {
+          this.getArticleDetails()
+        }
       }
       // this.getArticleDetails()
     },
@@ -308,10 +320,10 @@ export default {
       if (this.isShowPopup === false) {
         try {
           await CommenOn(this.artId, this.message)
-          this.getArticleComment()
         } catch (error) {
         } finally {
           this.isShow = false
+          this.getArticleComment()
         }
       } else {
         try {
@@ -320,6 +332,7 @@ export default {
         } catch (error) {
         } finally {
           this.isShow = false
+          this.getArticleComment()
         }
       }
       // console.log(this.message)
@@ -347,10 +360,10 @@ export default {
       }
       this.loading1 = false
     },
-    onLoad1 () {
-      this.onShowPopup()
-    },
-    async replyComment () {
+    // onLoad1 () {
+    //   this.onShowPopup()
+    // },
+    replyComment () {
       this.isShow = true
     },
     giveALikeFn () {
