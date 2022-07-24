@@ -12,24 +12,24 @@
       style="display: none"
     />
     <van-cell title="头像" is-link @click="isShowChangeImageFn">
-      <van-image class="userAvatar" round :src="userInfo.photo" />
+      <van-image class="userAvatar" round :src="photo" />
     </van-cell>
     <van-cell
       title="昵称"
       is-link
-      :value="userInfo.name"
+      v-model="ChangeNickname"
       @click="isShowChangeNickname = !isShowChangeNickname"
     />
     <van-cell
       title="性别"
       is-link
-      :value="gender"
+      v-model="gender"
       @click="isShowChangeGender = !isShowChangeGender"
     />
     <van-cell
       title="生日"
       is-link
-      :value="userInfo.birthday"
+      v-model="ChangeBirthday"
       @click="isShowChangeBirthday = !isShowChangeBirthday"
     />
     <!-- 更改性别组件 -->
@@ -91,6 +91,7 @@
       class="AvatarPopup"
     >
       <VueCropper
+        v-if="isShowChangeImage"
         :fileUrl="fileUrl"
         @CanceChangeImage="CancelChangeImageFn"
       ></VueCropper>
@@ -104,7 +105,7 @@ import dayjs from '@/utils/dayjs'
 export default {
   data () {
     return {
-      userInfo: {},
+      photo: '',
       message: '',
       columns: ['男', '女'],
       changeGender: '',
@@ -126,20 +127,23 @@ export default {
   },
   computed: {
     gender () {
-      return ['男', '女'][this.userInfo.gender]
+      return ['男', '女'][this.changeGender]
     }
   },
   methods: {
-    CancelChangeImageFn () {
-      console.log(1)
+    CancelChangeImageFn (photoImg) {
+      this.photo = photoImg
       this.isShowChangeImage = false
     },
     async getUserInfoDetails () {
       try {
         const res = await getUserInfoDetails()
         // console.log(res)
-        this.userInfo = res.data.data
+        this.ChangeNickname = res.data.data.name
+        this.changeGender = res.data.data.gender
+        this.ChangeBirthday = res.data.data.birthday
         this.message = res.data.data.name
+        this.photo = res.data.data.photo
       } catch (error) {}
     },
     async editUserInfoDetails () {
@@ -152,8 +156,6 @@ export default {
         this.$toast.success('修改成功')
       } catch (error) {
         this.$toast.fail('修改失败')
-      } finally {
-        this.getUserInfoDetails()
       }
     },
     onConfirmChangeGender (value, index) {

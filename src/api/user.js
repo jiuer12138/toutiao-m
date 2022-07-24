@@ -61,9 +61,9 @@ export const editUserInfoDetails = (name, gender, birthday) =>
       birthday
     }
   })
-export const ChangeUserAvatar = (photo) =>
+export const ChangeUserAvatar = (fm) =>
   request({
     url: '/v1_0/user/photo',
     method: 'PATCH',
-    params: { photo }
+    data: fm
   })

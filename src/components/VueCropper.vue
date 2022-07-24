@@ -23,7 +23,6 @@
         :high="option.high"
         :infoTrue="option.infoTrue"
         :enlarge="option.enlarge"
-        @realTime="realTime"
       ></vueCropper>
     </div>
     <div class="upload_box">
@@ -54,6 +53,7 @@ export default {
   },
   data () {
     return {
+      photo: '',
       option: {
         img: '', // 裁剪图片的地址  空 url 地址 || base64 || blob
         outputSize: 1, // 裁剪生成图片的质量 1 0.1 - 1
@@ -75,7 +75,7 @@ export default {
         infoTrue: true, // true 为展示真实输出图片宽高 false 展示看到的截图框宽高 false true | false
         maxImgSize: 2000, // 限制图片最大宽度和高度 2000  0-max
         enlarge: 1, // 图片根据截图框输出比例倍数 1 0-max(建议不要太大不然会卡死的呢)
-        mode: '100% auto' // 图片默认渲染方式  contain contain , cover, 100px, 100% auto
+        mode: 'cover' // 图片默认渲染方式  contain contain , cover, 100px, 100% auto
       }
     }
   },
@@ -93,38 +93,22 @@ export default {
       this.$emit('CanceChangeImage')
     },
     async startChangeAvatar () {
-      this.option.img = this.previews
-
-      const file = this.dataURLtoFile(this.previews, 'photo')
-      console.log(file)
+      // console.log(this.$refs.cropper)
+      const fm = new FormData()
+      this.$refs.cropper.getCropBlob(blob => {
+        fm.append('photo', blob)
+        this.ChangeUserAvatar(fm)
+      })
+    },
+    async ChangeUserAvatar (fm) {
       try {
-        const res = await ChangeUserAvatar(file.webkitRelativePath)
-        console.log(res)
+        const res = await ChangeUserAvatar(fm)
+        this.photo = res.data.data.photo
       } catch (error) {
         console.log(error)
       } finally {
-        this.$emit('CanceChangeImage')
+        this.$emit('CanceChangeImage', this.photo)
       }
-    },
-    // 预览
-    realTime () {
-      // 获取裁剪图片的base64
-      this.$refs.cropper.getCropData((base64) => {
-        // do something
-        this.previews = base64
-        // console.log('裁剪后的base64', base64)
-      })
-    }, // base64转file
-    dataURLtoFile (dataURL, fileName) {
-      const arr = dataURL.split(',')
-      const mime = arr[0].match(/:(.*?);/)[1]
-      const bstr = atob(arr[1])
-      let n = bstr.length
-      const u8arr = new Uint8Array(n)
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n)
-      }
-      return new File([u8arr], fileName, { type: mime })
     }
   }
 }

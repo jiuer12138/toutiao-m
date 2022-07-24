@@ -39,12 +39,10 @@
     <!-- 评论区 -->
     <van-list
       class="comment-list"
-      v-model="loading"
       :finished="finished"
       finished-text="没有更多了"
     >
       <CommentItem
-        @giveALike="giveALikeFn"
         :commentlist="commentlist"
         @showPopup="onShowPopup"
       ></CommentItem>
@@ -65,19 +63,17 @@
           }}</span>
         </template>
       </van-nav-bar>
-      <CommentItem :commentlist="currentCommentlist"></CommentItem>
+      <CommentItem
+        :commentlist="currentCommentlist"
+        @showPopup="onShowPopup"
+      ></CommentItem>
       <van-nav-bar title="全部回复" />
       <van-list
         class="comment-list"
-        v-model="loading1"
         :finished="finished1"
         finished-text="没有更多了"
       >
-        <CommentItem
-          @giveALike="giveUpTheLikeFn"
-          :commentlist="commentlist1"
-          @showPopup="onShowPopup"
-        ></CommentItem>
+        <CommentItem :commentlist="commentlist1"></CommentItem>
       </van-list>
       <div class="place"></div>
     </van-popup>
@@ -87,7 +83,11 @@
       v-model="isShowPopup"
       position="bottom"
       :style="{ height: '7%' }"
-      ><van-button type="info" class="CommentBtn" round @click="replyComment"
+      ><van-button
+        type="info"
+        class="CommentBtn"
+        round
+        @click="isShowCommentOnCommentPopup = true"
         >评论</van-button
       ></van-popup
     >
@@ -102,10 +102,7 @@
         @click="isShow = true"
         >写评论</van-button
       >
-      <van-tabbar-item
-        icon="comment-o"
-        :badge="articleObj.comm_count"
-      ></van-tabbar-item>
+      <van-tabbar-item icon="comment-o" :badge="commCount"></van-tabbar-item>
       <van-tabbar-item @click="isCollectedFn">
         <template #icon
           ><van-icon name="star" v-show="isCollected" />
@@ -138,10 +135,35 @@
       >
         <template #extra>
           <van-button
+            @click="CommentOnArticle"
             size="small"
             class="submitBtn"
             :disabled="isDisabled"
-            @click="submitComment"
+            >发布</van-button
+          >
+        </template>
+      </van-field>
+    </van-popup>
+    <!-- 评论评论的弹层 -->
+    <van-popup
+      v-model="isShowCommentOnCommentPopup"
+      position="bottom"
+      class="popUp"
+    >
+      <van-field
+        v-model.trim="message"
+        rows="2"
+        type="textarea"
+        maxlength="50"
+        placeholder="请输入留言"
+        show-word-limit
+      >
+        <template #extra>
+          <van-button
+            @click="publishComment"
+            size="small"
+            class="submitBtn"
+            :disabled="isDisabled"
             >发布</van-button
           >
         </template>
@@ -162,10 +184,12 @@ import { getArticleComment, CommenOn } from '@/api/comment'
 import { getUserfollowState, ChangeUserfollowState } from '@/api/user'
 import dayjs from '@/utils/dayjs'
 import CommentItem from './components/CommentItem'
+import { ImagePreview } from 'vant'
 export default {
   data () {
     return {
       articleObj: {},
+      commCount: '',
       isShow: false,
       message: '',
       commentlist: [],
@@ -198,10 +222,24 @@ export default {
       isShowPopup: false,
       artId: '',
       comId: '',
-      replyCount: 0
+      replyCount: 0,
+      isShowCommentOnCommentPopup: false
     }
   },
   components: { CommentItem },
+  updated () {
+    const imgs = document.querySelectorAll('img')
+    console.log(imgs)
+    const arr = []
+    imgs.forEach((item) => arr.push(item.src))
+    console.log(arr)
+    imgs.forEach((item, index) =>
+      item.addEventListener('click', () => {
+        console.log(index)
+        ImagePreview({ images: arr, startPosition: index })
+      })
+    )
+  },
   created () {
     this.getArticleDetails()
     this.getArticleComment()
@@ -225,27 +263,13 @@ export default {
         this.isCollected = res.data.data.is_collected
         this.Attitude = res.data.data.attitude
         this.artId = res.data.data.art_id
+        this.commCount = res.data.data.comm_count
       } catch (error) {
         console.log(error)
       }
     },
     onClickLeft () {
       this.$router.back()
-    },
-    async getArticleComment () {
-      const id = this.$route.params.id
-      const res = await getArticleComment('a', id, this.offset)
-      // console.log(res)
-      this.offset = res.data.data.last_id
-      if (this.loading) {
-        this.commentlist.push(...res.data.data.results)
-      } else {
-        this.commentlist = res.data.data.results
-      }
-      if (res.data.data.last_id === res.data.data.end_id) {
-        this.finished = true
-      }
-      this.loading = false
     },
     // onLoad () {
     //   this.getArticleComment()
@@ -257,19 +281,23 @@ export default {
         try {
           await ChangeUserfollowState(id)
           this.isFollow = false
+          this.$toast.success('取消关注')
         } catch (error) {
+          this.$toast.fail('取消失败，请重新再试')
         } finally {
           this.isFollowLoading = false
-          this.getArticleDetails()
+          // this.getArticleDetails()
         }
       } else {
         try {
           await getUserfollowState(id)
           this.isFollow = true
+          this.$toast.success('关注成功')
         } catch (error) {
+          this.$toast.fail('关注失败，请重新再试')
         } finally {
           this.isFollowLoading = false
-          this.getArticleDetails()
+          // this.getArticleDetails()
         }
       }
       // this.getArticleDetails()
@@ -280,17 +308,17 @@ export default {
         try {
           await ChangeArticleCollect(id)
           this.isCollected = false
+          this.$toast.success('取消收藏')
         } catch (error) {
-        } finally {
-          this.getArticleDetails()
+          this.$toast.fail('取消失败，请重新再试')
         }
       } else {
         try {
           await getArticleCollect(id)
           this.isCollected = true
+          this.$toast.success('收藏成功')
         } catch (error) {
-        } finally {
-          this.getArticleDetails()
+          this.$toast.fail('收藏失败，请重新再试')
         }
       }
       // this.getArticleDetails()
@@ -301,76 +329,78 @@ export default {
         try {
           await ChangeArticleAttitude(id)
           this.Attitude = -1
+          this.$toast.success('取消点赞')
         } catch (error) {
-        } finally {
-          this.getArticleDetails()
+          this.$toast.fail('取消失败，请重新再试')
         }
       } else if (this.Attitude === -1) {
         try {
           await getArticleAttitude(id)
           this.Attitude = 1
+          this.$toast.success('点赞成功')
         } catch (error) {
-        } finally {
-          this.getArticleDetails()
+          this.$toast.fail('取消失败，请重新再试')
         }
       }
       // this.getArticleDetails()
     },
-    async submitComment () {
-      if (this.isShowPopup === false) {
-        try {
-          await CommenOn(this.artId, this.message)
-        } catch (error) {
-        } finally {
-          this.isShow = false
-          this.getArticleComment()
+    async getArticleComment () {
+      try {
+        const id = this.$route.params.id
+        const res = await getArticleComment('a', id, this.offset)
+        // console.log(res)
+
+        this.offset = res.data.data.last_id
+        this.commentlist = res.data.data.results
+        if (res.data.data.last_id === res.data.data.end_id) {
+          this.finished = true
         }
-      } else {
-        try {
-          await CommenOn(this.comId, this.message, this.artId)
-          this.onShowPopup(this.comId)
-        } catch (error) {
-        } finally {
-          this.isShow = false
-          this.getArticleComment()
-        }
-      }
-      // console.log(this.message)
+        // console.log(this.commentlist)
+        this.loading = false
+      } catch (error) {}
     },
-    async onShowPopup (id, count) {
-      this.currentCommentlist = this.commentlist.filter(
-        (item) => item.com_id === id
-      )
-      this.comId = id
-      this.replyCount = count
-      // console.log(this.currentCommentlist)
-      // console.log(this.commentlist)
-      // console.log(id)
-      this.isShowPopup = true
-      const res = await getArticleComment('c', id, this.offset)
-      // console.log(res)
-      this.offset = res.data.data.last_id
-      if (this.loading1) {
-        this.commentlist1.push(...res.data.data.results)
-      } else {
-        this.commentlist1 = res.data.data.results
-      }
-      if (res.data.data.last_id === res.data.data.end_id) {
-        this.finished1 = true
-      }
-      this.loading1 = false
-    },
-    // onLoad1 () {
-    //   this.onShowPopup()
+    // onLoad () {
+    //   // this.getArticleComment()
     // },
-    replyComment () {
-      this.isShow = true
+    async CommentOnArticle () {
+      try {
+        await CommenOn(this.artId, this.message)
+        const res = await getArticleComment('a', this.artId)
+        this.commCount = res.data.data.total_count
+        // console.log(res)
+        this.commentlist = res.data.data.results
+        this.message = ''
+        this.isShow = false
+        this.$toast.success('评论成功')
+      } catch (error) {
+        this.$toast.fail('评论失败，请重新再试')
+      }
     },
-    giveALikeFn () {
-      this.getArticleComment()
+    onShowPopup (item) {
+      this.currentCommentlist = [item]
+      // console.log(this.currentCommentlist)
+      this.replyCount = item.reply_count
+      this.isShowPopup = true
+      this.CommentOnComments(item.com_id)
+      this.comId = item.com_id
     },
-    giveUpTheLikeFn () {
-      this.onShowPopup(this.comId, this.replyCount)
+    async CommentOnComments (id) {
+      const res = await getArticleComment('c', id)
+      console.log(res)
+      this.commentlist1 = res.data.data.results
+    },
+    async publishComment () {
+      try {
+        const res = await CommenOn(this.comId, this.message, this.artId)
+        console.log(res)
+        this.commentlist1.unshift(res.data.data.new_obj)
+        this.message = ''
+        this.isShowCommentOnCommentPopup = false
+        this.replyCount = this.commentlist1.length
+        this.$toast.success('评论成功')
+      } catch (error) {
+        this.$toast.fail('评论失败，请重新再试')
+      }
     }
   }
 }

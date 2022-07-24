@@ -10,11 +10,13 @@
         <van-icon name="good-job-o" v-show="!item.is_liking" />
         <span
           class="like-count"
-          :class="{ active: item.is_liking  }"
+          :class="{ active: item.is_liking }"
           v-if="item.like_count === 0"
           >赞</span
         >
-        <span v-else :class="{ active: item.is_liking }">{{ item.like_count }}</span>
+        <span v-else :class="{ active: item.is_liking }">{{
+          item.like_count
+        }}</span>
       </div>
       <template #icon>
         <van-image
@@ -42,8 +44,7 @@ import dayjs from '@/utils/dayjs'
 import { giveALike, giveUpTheLike } from '@/api/comment'
 export default {
   data () {
-    return {
-    }
+    return {}
   },
   props: {
     commentlist: {
@@ -52,7 +53,7 @@ export default {
     }
   },
   components: {},
-  mounted () {},
+  created () {},
   computed: {
     Time () {
       return function (pubdate) {
@@ -64,20 +65,26 @@ export default {
     replyFn (item) {
       const id = item.com_id
       const count = item.reply_count
-      console.log(count)
-      this.$emit('showPopup', id, count)
+      console.log(item)
+      console.log(id, count)
+      this.$emit('showPopup', item)
     },
     async giveALike (item) {
       console.log(item)
-      if (item.is_liking) {
-        const res = await giveUpTheLike(item.com_id)
-        console.log(res)
-      } else {
-        const res = await giveALike(item.com_id)
-        console.log(res)
+      try {
+        if (item.is_liking) {
+          await giveUpTheLike(item.com_id)
+          item.like_count--
+          this.$toast.success('取消点赞')
+        } else {
+          await giveALike(item.com_id)
+          item.like_count++
+          this.$toast.success('点赞成功')
+        }
+        item.is_liking = !item.is_liking
+      } catch (error) {
+        this.$toast.fail('取消失败，请重新再试')
       }
-      this.isLike = !this.isLike
-      this.$emit('giveALike')
     }
   }
 }
